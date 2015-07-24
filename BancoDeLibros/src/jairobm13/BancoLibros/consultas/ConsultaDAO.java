@@ -2,7 +2,10 @@ package jairobm13.BancoLibros.consultas;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Savepoint;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -58,29 +61,281 @@ public class ConsultaDAO {
 	// Consultas
 	//-------------------------------------------------------
 
-	public ArrayList<Tabla> darTablasSinDatos() {
-		// TODO Auto-generated method stub
-		return null;
+	public ArrayList<Tabla> darTablasSinDatos() throws Exception {
+		PreparedStatement statement = null;
+		ArrayList<Tabla> respuesta = new ArrayList<Tabla>();
+		try {
+			String sentenciaSQL = "SHOW TABLES FROM bancolibros";
+			conectar(url, usuario, clave);
+			conexion.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+			statement = conexion.prepareStatement(sentenciaSQL);
+			ResultSet rs = statement.executeQuery();
+			while(rs.next()){
+				Tabla actual = new Tabla();
+				actual.setNombre(rs.getString("Tables_in_bancolibros"));
+			}
+		} catch (Exception e) {
+			// TODO: handle exception
+		} finally{
+			if(statement != null){
+				try{
+					statement.close();
+				}catch(SQLException exception){
+					throw new Exception("Hubo un problema con la consultada");
+				}
+			}
+		}
+		return respuesta;
 	}
 
-	public void agregarNuevoLibro(String nombre, String autor, String cantidad) {
-		// TODO Auto-generated method stub
+	public void agregarNuevoLibro(String nombre, String autor, String cantidad, String tabla) throws Exception {
+		PreparedStatement statement = null;
+		Savepoint sp = null;
+		try {
+			ArrayList<String> columns = new ArrayList<String>();
+			columns.add("Libro");
+			columns.add("Autor");
+			columns.add("Cantidad");
+			columns.add("Disponible");
+			ArrayList<String> values = new ArrayList<String>();
+			values.add(nombre);
+			values.add(autor);
+			values.add(cantidad);
+			values.add("Si");
+			String insertQuery = generateInsert(tabla, columns, values);
 
+			conectar(url, usuario, clave);
+
+			statement = conexion.prepareStatement(insertQuery);
+			sp = conexion.setSavepoint();
+			statement.executeUpdate();
+
+			conexion.commit();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			conexion.rollback(sp);
+			throw new Exception("Error al insertar un nuevo libro");
+		}finally{
+			if (statement != null) 
+			{
+				try {
+					statement.close();
+				} catch (SQLException exception) {
+
+					throw new Exception("ERROR: ConsultaDAO: loadRow() =  cerrando una conexión.");
+				}
+			}
+			desconectar(conexion);
+		}
 	}
 
-	public void actualizarLibro(Libro book, String nombre, String autor, int cantidad) {
-		// TODO Auto-generated method stub
+	public void agregarNuevasCopias(String nombre, String autor, String cantidad) throws Exception{
+		PreparedStatement statement = null;
+		Savepoint sp = null;
+		try {
+			ArrayList<String> columns = new ArrayList<String>();
+			columns.add("Libro");
+			columns.add("Autor");
+			columns.add("Cantidad");
+			columns.add("Disponible");
+			ArrayList<String> values = new ArrayList<String>();
+			values.add(nombre);
+			values.add(autor);
+			values.add(cantidad);
+			values.add("Si");
+			String insertQuery = generateInsert("copias", columns, values);
+			
+			conectar(url, usuario, clave);
 
+			statement = conexion.prepareStatement(insertQuery);
+			sp = conexion.setSavepoint();
+			statement.executeUpdate();
+			
+			conexion.commit();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			conexion.rollback(sp);
+			throw new Exception("Error al insertar un nuevo libro");
+		}finally{
+			if (statement != null) 
+			{
+				try {
+					statement.close();
+				} catch (SQLException exception) {
+
+					throw new Exception("ERROR: ConsultaDAO: loadRow() =  cerrando una conexión.");
+				}
+			}
+			desconectar(conexion);
+		}
+	}
+
+	public void actualizarLibro(Libro book, String nombre, String autor, String cantidad, String tabla) throws Exception {
+		PreparedStatement statement = null;
+		Savepoint sp = null;
+		try {
+			ArrayList<String> columns = new ArrayList<String>();
+			columns.add("Libro");
+			columns.add("Autor");
+			columns.add("Cantidad");
+			columns.add("Disponible");
+			ArrayList<String> values = new ArrayList<String>();
+			values.add(nombre);
+			values.add(autor);
+			values.add(cantidad);
+			if(book.getCantidad() - Integer.parseInt(cantidad) == 0){ 
+				values.add("No");
+			}
+			else{
+				values.add("Si");
+			}
+			ArrayList<String> where = new ArrayList<String>();
+			where.add("Libro = "+book.getNombre());
+			where.add("Autor = "+book.getAutor());
+			String insertQuery = generateUpdate(tabla, columns, values, where);
+
+			conectar(url, usuario, clave);
+
+			statement = conexion.prepareStatement(insertQuery);
+			sp = conexion.setSavepoint();
+			statement.executeUpdate();
+
+			conexion.commit();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			conexion.rollback(sp);
+			throw new Exception("Error al insertar un nuevo libro");
+		}finally{
+			if (statement != null) 
+			{
+				try {
+					statement.close();
+				} catch (SQLException exception) {
+
+					throw new Exception("ERROR: ConsultaDAO: loadRow() =  cerrando una conexión.");
+				}
+			}
+			desconectar(conexion);
+		}
+	}
+
+	public void actualizarCopias(Libro book, String nombre, String autor, String cantidad, String tabla) throws Exception{
+		PreparedStatement statement = null;
+		Savepoint sp = null;
+		try {
+			ArrayList<String> columns = new ArrayList<String>();
+			columns.add("Libro");
+			columns.add("Autor");
+			columns.add("Cantidad");
+			columns.add("Disponible");
+			ArrayList<String> values = new ArrayList<String>();
+			values.add(nombre);
+			values.add(autor);
+			values.add(cantidad);
+			if(book.getCantidad() - Integer.parseInt(cantidad) == 0){ 
+				values.add("No");
+			}
+			else{
+				values.add("Si");
+			}
+			ArrayList<String> where = new ArrayList<String>();
+			where.add("Libro = "+book.getNombre());
+			where.add("Autor = "+book.getAutor());
+			String insertQuery = generateUpdate("copias", columns, values, where);
+
+			conectar(url, usuario, clave);
+
+			statement = conexion.prepareStatement(insertQuery);
+			sp = conexion.setSavepoint();
+
+			statement.executeUpdate();
+
+			conexion.commit();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			conexion.rollback(sp);
+			throw new Exception("Error al insertar un nuevo libro");
+		}finally{
+			if (statement != null) 
+			{
+				try {
+					statement.close();
+				} catch (SQLException exception) {
+
+					throw new Exception("ERROR: ConsultaDAO: loadRow() =  cerrando una conexión.");
+				}
+			}
+			desconectar(conexion);
+		}
 	}
 
 	public void eliminarLibro(Libro book) {
+
 		// TODO Auto-generated method stub
 
 	}
 
-	public boolean hacerPrestamo(Libro book, String estudiante, String codigo, String correo) {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean hacerPrestamo(Libro book, String estudiante, String codigo, String correo, String tabla) throws Exception {
+		PreparedStatement statement = null;
+		Savepoint sp = null;
+		try {
+			conectar(url, usuario, clave);
+			sp = conexion.setSavepoint();
+			ArrayList<String> columns = new ArrayList<String>();
+			columns.add("Cantidad");
+			columns.add("Disponible");
+			ArrayList<String> values = new ArrayList<String>();
+			values.add(book.getCantidad()+"");
+			values.add(book.isDisponibilidad());
+			ArrayList<String> where = new ArrayList<String>();
+			where.add("Libro = "+book.getNombre());
+			where.add("Autor = "+book.getAutor());
+			String updateQuery = generateUpdate(tabla, columns, values, where);
+
+
+			statement = conexion.prepareStatement(updateQuery);
+
+			statement.executeUpdate();
+			
+			columns.clear();
+			columns.add("Estudiante");
+			columns.add("Codigo");
+			columns.add("Correo");
+			columns.add("Libro");
+			columns.add("Prestamo");
+			values.clear();
+			values.add(estudiante);
+			values.add(codigo);
+			values.add(correo);
+			values.add(book.getNombre());
+			
+			String insertQuery = generateInsert("prestamos", columns, values);
+			
+			statement = conexion.prepareStatement(insertQuery);
+			
+			conexion.commit();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			conexion.rollback(sp);
+			return false;
+		}finally{
+			if (statement != null) 
+			{
+				try {
+					statement.close();
+				} catch (SQLException exception) {
+
+					throw new Exception("ERROR: ConsultaDAO: loadRow() =  cerrando una conexión.");
+				}
+			}
+			desconectar(conexion);
+		}
+		return true;
 	}
 
 	public ArrayList<Libro> darDatosLibro(Tabla tablaActual) {

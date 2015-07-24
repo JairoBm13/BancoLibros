@@ -12,7 +12,7 @@ public class Libro {
 	
 	private int cantidad;
 	
-	private boolean disponibilidad;
+	private String disponibilidad;
 	
 	//---------------------------------------------
 	// Constructor
@@ -71,25 +71,25 @@ public class Libro {
 	/**
 	 * @return the disponibilidad
 	 */
-	public boolean isDisponibilidad() {
+	public String isDisponibilidad() {
 		return disponibilidad;
 	}
 
 	/**
 	 * @param disponibilidad the disponibilidad to set
 	 */
-	public void setDisponibilidad(boolean disponibilidad) {
+	public void setDisponibilidad(String disponibilidad) {
 		this.disponibilidad = disponibilidad;
 	}
 	
 	public void aumentarCantidadLibro(){
 		cantidad++;
-		disponibilidad = (cantidad>0) ? true : false;
+		disponibilidad = (cantidad>0) ? "Si" : "No";
 	}
 	
 	public void disminuirCantidadLibro(){
 		cantidad--;
-		disponibilidad = (cantidad>0) ? true : false;
+		disponibilidad = (cantidad>0) ? "Si" : "No";
 	}
 
 	//---------------------------------------------
