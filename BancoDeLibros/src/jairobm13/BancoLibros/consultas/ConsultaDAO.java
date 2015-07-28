@@ -28,6 +28,10 @@ public class ConsultaDAO {
 	//-----------------------------------------------
 	// Metodos
 	//-----------------------------------------------
+
+	/**
+	 * 
+	 */
 	private void inicializar(){
 		try {
 			url =  "jdbc:mysql://127.0.01:3306/BancoLibros";
@@ -40,6 +44,13 @@ public class ConsultaDAO {
 		}
 	}
 
+
+	/**
+	 * 
+	 * @param url
+	 * @param usuario
+	 * @param clave
+	 */
 	private void conectar(String url, String usuario, String clave){
 		try {
 			conexion = DriverManager.getConnection("jdbc:mysql://127.0.01:3306/BancoLibros","root", "admin");
@@ -48,6 +59,10 @@ public class ConsultaDAO {
 		}
 	}
 
+	/**
+	 * 
+	 * @param connection
+	 */
 	private void desconectar(Connection connection){
 		try {
 			connection.close();
@@ -61,6 +76,11 @@ public class ConsultaDAO {
 	// Consultas
 	//-------------------------------------------------------
 
+	/**
+	 * 
+	 * @return
+	 * @throws Exception
+	 */
 	public ArrayList<Tabla> darTablasSinDatos() throws Exception {
 		PreparedStatement statement = null;
 		ArrayList<Tabla> respuesta = new ArrayList<Tabla>();
@@ -75,7 +95,8 @@ public class ConsultaDAO {
 				actual.setNombre(rs.getString("Tables_in_bancolibros"));
 			}
 		} catch (Exception e) {
-			// TODO: handle exception
+			e.printStackTrace();
+			throw new Exception("ERROR = ConsultaDAO: loadRowsBy(..) Agregando parametros y executando el statement!!!");
 		} finally{
 			if(statement != null){
 				try{
@@ -88,6 +109,14 @@ public class ConsultaDAO {
 		return respuesta;
 	}
 
+	/**
+	 * 
+	 * @param nombre
+	 * @param autor
+	 * @param cantidad
+	 * @param tabla
+	 * @throws Exception
+	 */
 	public void agregarNuevoLibro(String nombre, String autor, String cantidad, String tabla) throws Exception {
 		PreparedStatement statement = null;
 		Savepoint sp = null;
@@ -145,13 +174,13 @@ public class ConsultaDAO {
 			values.add(cantidad);
 			values.add("Si");
 			String insertQuery = generateInsert("copias", columns, values);
-			
+
 			conectar(url, usuario, clave);
 
 			statement = conexion.prepareStatement(insertQuery);
 			sp = conexion.setSavepoint();
 			statement.executeUpdate();
-			
+
 			conexion.commit();
 
 		} catch (Exception e) {
@@ -172,6 +201,15 @@ public class ConsultaDAO {
 		}
 	}
 
+	/**
+	 * 
+	 * @param book
+	 * @param nombre
+	 * @param autor
+	 * @param cantidad
+	 * @param tabla
+	 * @throws Exception
+	 */
 	public void actualizarLibro(Libro book, String nombre, String autor, String cantidad, String tabla) throws Exception {
 		PreparedStatement statement = null;
 		Savepoint sp = null;
@@ -222,6 +260,15 @@ public class ConsultaDAO {
 		}
 	}
 
+	/**
+	 * 
+	 * @param book
+	 * @param nombre
+	 * @param autor
+	 * @param cantidad
+	 * @param tabla
+	 * @throws Exception
+	 */
 	public void actualizarCopias(Libro book, String nombre, String autor, String cantidad, String tabla) throws Exception{
 		PreparedStatement statement = null;
 		Savepoint sp = null;
@@ -300,7 +347,7 @@ public class ConsultaDAO {
 			statement = conexion.prepareStatement(updateQuery);
 
 			statement.executeUpdate();
-			
+
 			columns.clear();
 			columns.add("Estudiante");
 			columns.add("Codigo");
@@ -312,11 +359,12 @@ public class ConsultaDAO {
 			values.add(codigo);
 			values.add(correo);
 			values.add(book.getNombre());
-			
+
 			String insertQuery = generateInsert("prestamos", columns, values);
-			
+
+			statement.close();
 			statement = conexion.prepareStatement(insertQuery);
-			
+			statement.executeUpdate();
 			conexion.commit();
 
 		} catch (Exception e) {

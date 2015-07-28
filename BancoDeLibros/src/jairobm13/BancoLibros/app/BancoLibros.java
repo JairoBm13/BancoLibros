@@ -32,15 +32,29 @@ public class BancoLibros extends Observable{
 	//------------------------------------------------
 
 	private ArrayList<Tabla> cargarInfoTablas(){
-		return dao.darTablasSinDatos();
+		try {
+			return dao.darTablasSinDatos();
+		} catch (Exception e) {
+			return new ArrayList<Tabla>();
+		}
 	}
 	
 	public void agregarLibroATablaActual(String nombre, String autor, String cantidad){
-		dao.agregarNuevoLibro(nombre, autor, cantidad);
+		try {
+			dao.agregarNuevoLibro(nombre, autor, cantidad, tablaActual.getNombre());
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	public void actualizarLibro(Libro book, String nombre, String autor, int cantidad){
-		dao.actualizarLibro(book, nombre, autor, cantidad);
+		try {
+			dao.actualizarLibro(book, nombre, autor, cantidad+"", tablaActual.getNombre());
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	public void quitarLibro(Libro book){
@@ -48,7 +62,11 @@ public class BancoLibros extends Observable{
 	}
 	
 	public boolean hacerPrestamo(Libro book, String estudiante, String codigo, String correo){
-		return dao.hacerPrestamo(book, estudiante, codigo, correo);
+		try {
+			return dao.hacerPrestamo(book, estudiante, codigo, correo, tablaActual.getNombre());
+		} catch (Exception e) {
+			return false;
+		}
 	}
 	
 	public ArrayList<Libro> darDatosLibroActual(){
