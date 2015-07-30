@@ -326,6 +326,16 @@ public class ConsultaDAO {
 
 	}
 
+	/**
+	 * 
+	 * @param book
+	 * @param estudiante
+	 * @param codigo
+	 * @param correo
+	 * @param tabla
+	 * @return
+	 * @throws Exception
+	 */
 	public boolean hacerPrestamo(Libro book, String estudiante, String codigo, String correo, String tabla) throws Exception {
 		PreparedStatement statement = null;
 		Savepoint sp = null;
@@ -386,9 +396,42 @@ public class ConsultaDAO {
 		return true;
 	}
 
-	public ArrayList<Libro> darDatosLibro(Tabla tablaActual) {
-		// TODO Auto-generated method stub
-		return null;
+	/**
+	 * 
+	 * @param tablaActual
+	 * @return
+	 * @throws Exception 
+	 */
+	public ArrayList<Libro> darDatosLibro(Tabla tablaActual) throws Exception {
+		ArrayList<Libro> libros = new ArrayList<Libro>();
+		PreparedStatement statement = null;
+		try {
+			conectar(url, usuario, clave);
+			ArrayList<String> select = new ArrayList<>();
+			select.add("*");
+			String tabla = tablaActual.getNombre();
+			String selectQuery = generateQuery(select, tabla, new ArrayList<String>(), new ArrayList<String>(), new ArrayList<String>());
+			statement = conexion.prepareStatement(selectQuery);
+			ResultSet rs = statement.executeQuery();
+			while(rs.next()){
+				
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			return libros;
+		}finally{
+			if (statement != null) 
+			{
+				try {
+					statement.close();
+				} catch (SQLException exception) {
+
+					throw new Exception("ERROR: ConsultaDAO: loadRow() =  cerrando una conexión.");
+				}
+			}
+			desconectar(conexion);
+		}
+		return libros;
 	}
 
 	public ArrayList<Libro> darPrestamosEstudiante() {
