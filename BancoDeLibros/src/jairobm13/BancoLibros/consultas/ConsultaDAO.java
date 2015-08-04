@@ -152,13 +152,16 @@ public class ConsultaDAO {
 					statement.close();
 				} catch (SQLException exception) {
 
-					throw new Exception("ERROR: ConsultaDAO: loadRow() =  cerrando una conexi髇.");
+					throw new Exception("ERROR: ConsultaDAO: loadRow() =  cerrando una conexi贸n.");
 				}
 			}
 			desconectar(conexion);
 		}
 	}
 
+	/**
+	*
+	*/
 	public void agregarNuevasCopias(String nombre, String autor, String cantidad) throws Exception{
 		PreparedStatement statement = null;
 		Savepoint sp = null;
@@ -194,7 +197,7 @@ public class ConsultaDAO {
 					statement.close();
 				} catch (SQLException exception) {
 
-					throw new Exception("ERROR: ConsultaDAO: loadRow() =  cerrando una conexi髇.");
+					throw new Exception("ERROR: ConsultaDAO: loadRow() =  cerrando una conexi贸n.");
 				}
 			}
 			desconectar(conexion);
@@ -253,7 +256,7 @@ public class ConsultaDAO {
 					statement.close();
 				} catch (SQLException exception) {
 
-					throw new Exception("ERROR: ConsultaDAO: loadRow() =  cerrando una conexi髇.");
+					throw new Exception("ERROR: ConsultaDAO: loadRow() =  cerrando una conexi贸n.");
 				}
 			}
 			desconectar(conexion);
@@ -313,7 +316,7 @@ public class ConsultaDAO {
 					statement.close();
 				} catch (SQLException exception) {
 
-					throw new Exception("ERROR: ConsultaDAO: loadRow() =  cerrando una conexi髇.");
+					throw new Exception("ERROR: ConsultaDAO: loadRow() =  cerrando una conexi贸n.");
 				}
 			}
 			desconectar(conexion);
@@ -388,7 +391,7 @@ public class ConsultaDAO {
 					statement.close();
 				} catch (SQLException exception) {
 
-					throw new Exception("ERROR: ConsultaDAO: loadRow() =  cerrando una conexi髇.");
+					throw new Exception("ERROR: ConsultaDAO: loadRow() =  cerrando una conexi贸n.");
 				}
 			}
 			desconectar(conexion);
@@ -426,7 +429,7 @@ public class ConsultaDAO {
 					statement.close();
 				} catch (SQLException exception) {
 
-					throw new Exception("ERROR: ConsultaDAO: loadRow() =  cerrando una conexi髇.");
+					throw new Exception("ERROR: ConsultaDAO: loadRow() =  cerrando una conexi贸n.");
 				}
 			}
 			desconectar(conexion);
@@ -434,19 +437,142 @@ public class ConsultaDAO {
 		return libros;
 	}
 
-	public ArrayList<Libro> darPrestamosEstudiante() {
-		// TODO Auto-generated method stub
-		return null;
+	public ArrayList<Libro> darPrestamosEstudiante(String codigo) {
+		ArrayList<Libro> respuesta = new ArrayList<Libro>();
+		PreparedStatement statement = null;
+		try{
+			conectar(url, usuario, clave);
+			ArrayList<String> select = new ArrayList<String>();
+			select.add("Libro");
+			select.add("Autor");
+			ArrayList<String> where = new ArrayList<String>();
+			where.add("codigo = "+codigo);
+			String sentencia = generateQuery(select, tabla, where, new ArrayList<String>(), new ArrayList<String>());
+			statement = conexion.prepareStatement(sentencia);
+			ResultSet rs = statement.executeQuery();
+			while(rs.next()){
+				Libro lib = new Libro();
+				lib.setAutor(rs.getString("Autor"));
+				lib.setNombre(rs.getString("Nombre"));
+				respuesta.add(lib);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			return respuesta;
+		}finally{
+			if (statement != null) 
+			{
+				try {
+					statement.close();
+				} catch (SQLException exception) {
+
+					throw new Exception("ERROR: ConsultaDAO: loadRow() =  cerrando una conexi贸n.");
+				}
+			}
+			desconectar(conexion);
+		}
+		return respuesta;
 	}
 
 	public void agregarPedidoEnCola(Libro book, String estudiante, String codigo, String correo, int puestoEnCola) {
-		// TODO Auto-generated method stub
+		PreparedStatement statement = null;
+		Savepoint sp = null;
+		try {
+			conectar(url, usuario, clave);
+			sp = conexion.setSavepoint();
+			ArrayList<String> select = new ArrayList<String>();
+			ArrayList<String> where = new ArrayList<String>();
+			select.add("MAX(Posicion) as maxi");
+			String tabla = "en_espera";
+			where.add("Libro = "+book.getNombre());
+			String selectQuery = generateQuery(select, tabla, new ArrayList<String>(),new ArrayList<String>(),new ArrayList<String>());
+			
+			statement = conexion.prepareStatement(selectQuery);
 
+			ResultSet rs = statement.executeQuery();
+			int max = 0;
+			if(rs.next()){
+				max = rs.getInt("maxi");
+			}
+
+			ArrayList<String> columns = new ArrayList<String>();
+			ArrayList<String> values = new ArrayList<String>();
+
+			columns.add("Libro");
+			columns.add("Estudiante");
+			columns.add("Codigo");
+			columns.add("Correo");
+			columns.add("Posicion");
+
+			values.add(book.getNombre());
+			values.add(estudiante);
+			values.add(codigo);
+			values.add(correo);
+			values.add(max+"");
+
+
+			String insertQuery = generateInsert("en_espera", columns, values);
+
+			statement.close();
+			statement = conexion.prepareStatement(insertQuery);
+			statement.executeUpdate();
+			conexion.commit();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			conexion.rollback(sp);
+			return false;
+		}finally{
+			if (statement != null) 
+			{
+				try {
+					statement.close();
+				} catch (SQLException exception) {
+
+					throw new Exception("ERROR: ConsultaDAO: loadRow() =  cerrando una conexi贸n.");
+				}
+			}
+			desconectar(conexion);
+		}
 	}
 
 	public ArrayList<String> darEnEspera() {
-		// TODO Auto-generated method stub
-		return null;
+		ArrayList<Libro> respuesta = new ArrayList<Libro>();
+		PreparedStatement statement = null;
+		try{
+			conectar(url, usuario, clave);
+			ArrayList<String> select = new ArrayList<String>();
+			select.add("Libro");
+			select.add("Estudiante");
+			select.add("Codigo");
+			select.add("Correo");
+			String sentencia = generateQuery(select, tabla,  new ArrayList<String>(), new ArrayList<String>(), new ArrayList<String>());
+			statement = conexion.prepareStatement(sentencia);
+			ResultSet rs = statement.executeQuery();
+			while(rs.next()){
+				String cadena = "";
+				cadena += rs.getString("Autor")+";";
+				cadena += rs.getString("Nombre")+";";
+				cadena += rs.getString("Codigo")+";";
+				cadena += rs.getString("Posicion");
+				respuesta.add(lib);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			return respuesta;
+		}finally{
+			if (statement != null) 
+			{
+				try {
+					statement.close();
+				} catch (SQLException exception) {
+
+					throw new Exception("ERROR: ConsultaDAO: loadRow() =  cerrando una conexi贸n.");
+				}
+			}
+			desconectar(conexion);
+		}
+		return respuesta;
 	}
 
 	//--------------------------------------------------------------
@@ -454,7 +580,7 @@ public class ConsultaDAO {
 	//--------------------------------------------------------------
 
 	/**
-	 * Genera una cadena de texto que representa una sentencia SQL para seleccionar informaci髇.
+	 * Genera una cadena de texto que representa una sentencia SQL para seleccionar informaci贸n.
 	 * @param select
 	 * @param tabla
 	 * @param where
@@ -527,7 +653,7 @@ public class ConsultaDAO {
 	}
 
 	/**
-	 * Genera una cadena de texto que representa una sentencia SQL para seleccionar informaci髇, para update.
+	 * Genera una cadena de texto que representa una sentencia SQL para seleccionar informaci贸n, para update.
 	 * @param select
 	 * @param tabla
 	 * @param where
